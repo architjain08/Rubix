@@ -1,0 +1,141 @@
+#include<bits/stdc++.h>
+using namespace std;
+struct node
+{
+    int idx;
+    node *children[10];
+};
+ 
+node *newNode(int k)
+{
+    node *temp = new node;
+    temp->idx = k;
+    for(int i=0;i<10;i++)
+    temp->children[i] = NULL;
+    return temp;
+}
+ 
+void insert(char a[],int idx,node *root)
+{
+    node *curr = root;
+    for(int i=0;a[i]!='\0';i++)
+    {
+       if(curr->children[a[i]-'0']==NULL)
+       curr->children[a[i]-'0'] = newNode(idx);
+       curr = curr->children[a[i]-'0'];
+    }
+}
+ 
+int search(char a[],node *root)
+{
+    node *curr = root;
+    int id;
+    for(int i=0;a[i]!='\0';i++)
+    {
+        if(curr->children[a[i]-'0']==NULL)
+        return -1;
+        else
+        {
+            curr = curr->children[a[i]-'0'];
+            id = curr->idx;
+        }
+    }
+    return id;
+}
+int dp[362889];
+ 
+void swap(char &a,char &b)
+{
+    char temp;
+    temp = a;
+    a = b;
+    b = temp;
+}
+int moves[8][4] = {
+	{0,3,4,1}, {1,4,5,2}, {3,6,7,4}, {4,7,8,5},
+	{0,1,4,3}, {1,2,5,4}, {3,4,7,6}, {4,5,8,7}
+};
+ 
+struct game
+{
+    char a[11];
+    int steps;
+};
+game newGame(char b[],int s)
+{
+    game temp;
+    strcpy(temp.a,b);
+    temp.steps=s;
+    return temp;
+}
+void bfs(node *root)
+{
+    int index= 1;
+    int j,x;
+    queue<game> pq;
+    insert("123456789",index,root);
+    index++;
+    pq.push(newGame("123456789",0));
+ 
+    while(!pq.empty())
+    {
+        game temp;
+        strcpy(temp.a,pq.front().a);
+        temp.steps = pq.front().steps;
+        pq.pop();
+        if(temp.steps>=9)
+        continue;
+ 
+        for(int k=0;k<8;k++)
+        {
+            char newNum[11];
+            strcpy(newNum,temp.a);
+ 
+          for(j = 1, x = newNum[moves[k][0]]; j < 4; j++)
+				newNum[moves[k][j-1]] = newNum[moves[k][j]];
+			newNum[moves[k][j-1]] = x;
+ 
+            int xx = search(newNum,root);
+ 
+            if(xx==-1)
+            {
+                insert(newNum,index,root);
+                dp[index] = temp.steps+1;
+                index++;
+                pq.push(newGame(newNum,temp.steps+1));
+            }
+        }
+    }
+}
+int main()
+{
+    node *root = newNode(0);
+    bfs(root);
+ 
+   char inp[11],temp[11];
+    int counter=1;
+    while(true)
+    {
+        scanf("%s",&inp);
+        if(inp[1]=='0')
+        break;
+ 
+        int y = inp[0]-'0';
+ 
+        for(int i=1;i<10;i++)
+        temp[i-1] = inp[i];
+        temp[9] = '\0';
+ 
+        printf("%d. ",counter);
+        counter++;
+        int xx = search(temp,root);
+        if(xx==-1)
+        printf("-1\n");
+        else if(y<dp[xx])
+        printf("-1\n");
+        else
+        printf("%d\n",dp[xx]);
+    }
+    return 0;
+}
+ 
